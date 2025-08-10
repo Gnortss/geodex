@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MBTiles Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet" />
+  <style>
+    html, body, #map {
+      height: 100%;
+      margin: 0;
+    }
+    .navbar {
+      position: absolute;
+      z-index: 1000;
+      width: 100%;
+    }
+    .layer-controls {
+      background: white;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px;
+    }
+    .popup {
+      background: white;
+      border: 1px solid #ccc;
+      padding: 6px;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
+  <script>
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: {
+        version: 8,
+        sources: {
+          "osm": {
+            type: "raster",
+            tiles: ["https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"],
+            tileSize: 256,
+            attribution: "© OpenStreetMap contributors"
+          },
+          "parcele": {
+            type: "vector",
+            tiles: ["https://jure.gcd.si/data/parcele/{z}/{x}/{y}.pbf"]
+          },
+          "vodovod": {
+            type: "vector",
+            tiles: ["https://jure.gcd.si/data/vodovod/{z}/{x}/{y}.pbf"]
+          },
+          "obcine": {
+            type: "vector",
+            tiles: ["https://jure.gcd.si/data/obcine/{z}/{x}/{y}.pbf"]
+          }
+        },
+        layers: [
+          {
+            id: "osm",
+            type: "raster",
+            source: "osm"
+          },
+          {
+            id: "parcele-fill",
+            type: "fill",
+            source: "parcele",
+            "source-layer": "parcele",
+            paint: {
+              "fill-outline-color": "rgba(0, 0, 0, 0.3)",
+              "fill-color": "rgba(227, 227, 227, 0)",
+            },
+            layout: {
+              visibility: "visible"
+            }
+          },
+          {
+            id: "parcele-highlight",
+            type: "fill",
+            source: "parcele",
+            "source-layer": "parcele",
+            paint: {
+              "fill-color": "#e3e3e3",
+              "fill-opacity": 0.6
+            },
+            filter: ["==", "__highlight__", true]
+          },
+          {
+            id: "vodovod-linije",
+            type: "line",
+            source: "vodovod",
+            "source-layer": "vodovod_linije",
+            paint: {
+              "line-color": "#0000ff",
+              "line-width": 2
+            },
+          },
+          {
+            id: "vodovod-poligoni",
+            type: "fill",
+            source: "vodovod",
+            "source-layer": "vodovod_poligoni",
+            paint: {
+              "fill-color": "#FFA500",
+              "fill-opacity": 0.6
+            },
+          },
+          {
+            id: "vodovod-tocke",
+            type: "circle",
+            source: "vodovod",
+            "source-layer": "vodovod_tocke",
+            paint: {
+              "circle-radius": 5,
+              "circle-color": "#FF00FF"
+            },
+          },
+          {
+            id: "obcine-outline",
+            type: "line",
+            source: "obcine",
+            "source-layer": "obcine",
+            paint: {
+              "line-color": "#000",
+              "line-opacity": 0.7,
+              "line-width": [
+                "interpolate", ["linear"], ["zoom"],
+                6, 0.25,
+                10, 0.75,
+                12, 1.3,
+                14, 1.8
+              ]
+            }
+          }
+        ]
+      },
+      center: [0, 0],
+      zoom: 2
+    });
+
+    navigator.geolocation.getCurrentPosition(pos => {
+      map.setCenter([pos.coords.longitude, pos.coords.latitude]);
+      map.setZoom(13);
+    });
+
+    map.on('click', 'parcele-fill', (e) => {
+      const feature = e.features[0];
+      // const featureId = feature.id ?? feature.properties.id ?? '';
+      const featureParcelId = feature.properties.EID_PARCEL ?? '';
+
+      map.setFilter('parcele-highlight', ['==', ["get", "EID_PARCEL"], featureParcelId]);
+
+      new maplibregl.Popup()
+        .setLngLat(e.lngLat)
+        .setHTML(`<div class="popup">${Object.entries(feature.properties).map(([k,v]) => `<strong>${k}:</strong> ${v}`).join('<br>')}</div>`)
+        .addTo(map);
+    });
+
+    map.on('mouseenter', 'parcele-fill', () => {
+      map.getCanvas().style.cursor = 'pointer';
+    });
+
+    map.on('mouseleave', 'parcele-fill', () => {
+      map.getCanvas().style.cursor = '';
+    });
+  </script>
+</body>
+</html>
