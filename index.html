@@ -44,7 +44,7 @@
         sources: {
           "osm": {
             type: "raster",
-            tiles: ["https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"],
+            tiles: ["https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"],
             tileSize: 256,
             attribution: "© OpenStreetMap contributors"
           },
@@ -81,7 +81,7 @@
             }
           },
           {
-            id: "parcele-description",
+            id: "parcele-label",
             type: "symbol",
             source: "parcele",
             "source-layer": "parcele",
@@ -158,7 +158,29 @@
                 14, 1.8
               ]
             }
-          }
+          },
+          {
+            id: "obcine-label",
+            type: "symbol",
+            source: "obcine",
+            "source-layer": "obcine",
+            minzoom: 10,
+            maxzoom: 14,
+            layout: {
+              "text-field": ["get", "NAZIV"],
+              "text-size": ["interpolate", ["linear"], ["zoom"],
+                10, 10,
+                14, 18
+              ],
+              "text-anchor": "center",
+              "text-allow-overlap": false
+            },
+            paint: {
+              "text-color": "#000",
+              "text-halo-color": "#fff",
+              "text-halo-width": 1
+            }
+          },
         ]
       },
       center: [0, 0],
