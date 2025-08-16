@@ -40,6 +40,7 @@
       container: 'map',
       style: {
         version: 8,
+        glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
         sources: {
           "osm": {
             type: "raster",
@@ -77,6 +78,27 @@
             },
             layout: {
               visibility: "visible"
+            }
+          },
+          {
+            id: "parcele-description",
+            type: "symbol",
+            source: "parcele",
+            "source-layer": "parcele",
+            minzoom: 16,
+            layout: {
+              "text-field": ["get", "ST_PARCELE"],
+              "text-size": ["interpolate", ["linear"], ["zoom"],
+                16, 10,
+                20, 18
+              ],
+              "text-anchor": "center",
+              "text-allow-overlap": false
+            },
+            paint: {
+              "text-color": "#000",
+              "text-halo-color": "#fff",
+              "text-halo-width": 1
             }
           },
           {
